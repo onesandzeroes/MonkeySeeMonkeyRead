@@ -1,6 +1,7 @@
 from __future__ import division
 import collections
 import doctest
+import math
 import pdb
 import random
 import string
@@ -77,6 +78,20 @@ def generate_word(bigram_counts, length, start_letter=None):
     return word
 
 
+def calculate_log_probability(word, bigram_counts):
+    normed_counts = normalize_bigram_matrix(bigram_counts)
+    total_log_prob = 0
+    for i, c1 in enumerate(word[:-1]):
+        c2 = word[i + 1]
+        bigram_prob = normed_counts[c1][c2]
+        if bigram_prob == 0:
+            raise ValueError(
+                "Can't calculate probabilities for unknown bigrams")
+        log_prob = math.log(bigram_prob)
+        total_log_prob += log_prob
+    return total_log_prob
+
+
 moby_raw_words = nltk.corpus.gutenberg.words('melville-moby_dick.txt')
 moby_words = []
 
@@ -88,8 +103,22 @@ moby_bigram_counts = get_bigram_counts(moby_words)
 normed_counts = normalize_bigram_matrix(moby_bigram_counts)
 bigram_matrix = make_bigram_matrix(normed_counts)
 
-for i in range(100):
-    print(generate_word(moby_bigram_counts, 5))
+words = ['wasp', 'dime', 'hood', 'leek', 'open']
+nonwords = ['annk', 'ormp', 'palk', 'raln', 'scip']
+
+print("Words:")
+for w in words:
+    p = calculate_log_probability(w, moby_bigram_counts)
+    print(w + ': ' + str(p))
+
+print("Nonwords:")
+for w in nonwords:
+    p = calculate_log_probability(w, moby_bigram_counts)
+    print(w + ': ' + str(p))
+
+# Test generation:
+# for i in range(100):
+#     print(generate_word(moby_bigram_counts, 5))
 
 # To plot:
 # plt.pcolor(np.log(bigram_matrix + 1), cmap=plt.cm.Blues)
