@@ -2,6 +2,7 @@ from __future__ import division
 import collections
 import doctest
 import pdb
+import random
 import string
 import nltk
 import matplotlib.pyplot as plt
@@ -50,6 +51,28 @@ def normalize_bigram_matrix(bigram_counts):
             normed_counts[c1][c2] = count / total
     return normed_counts
 
+
+def weighted_random_choice(weight_dict):
+    """
+    Given a dict which maps from items to their counts, return
+    a random item, weighted by the counts.
+    """
+    weighted_sample = []
+    for k, weight in weight_dict.items():
+        weighted_sample.extend([k] * weight)
+    return random.choice(weighted_sample)
+
+
+def generate_word(bigram_counts, length, start_letter=None):
+    if start_letter is None:
+        start_letter = random.choice(bigram_counts.keys())
+    word = start_letter
+    while len(word) < length:
+        new_letter = weighted_random_choice(bigram_counts[word[-1]])
+        word += new_letter
+    return word
+
+
 moby_raw_words = nltk.corpus.gutenberg.words('melville-moby_dick.txt')
 moby_words = []
 
@@ -61,12 +84,16 @@ moby_bigram_counts = get_bigram_counts(moby_words)
 normed_counts = normalize_bigram_matrix(moby_bigram_counts)
 bigram_matrix = make_bigram_matrix(normed_counts)
 
+for i in range(100):
+    print(generate_word(moby_bigram_counts, 5))
+
 # To plot:
-plt.pcolor(np.log(bigram_matrix + 1), cmap=plt.cm.Blues)
-plt.xlim((0, 26))
-plt.ylim((0, 26))
-plt.xticks(np.arange(0.5, 26, 1), string.ascii_lowercase)
-plt.yticks(np.arange(0.5, 26, 1), string.ascii_lowercase)
+# plt.pcolor(np.log(bigram_matrix + 1), cmap=plt.cm.Blues)
+# plt.xlim((0, 26))
+# plt.ylim((0, 26))
+# plt.xticks(np.arange(0.5, 26, 1), string.ascii_lowercase)
+# plt.yticks(np.arange(0.5, 26, 1), string.ascii_lowercase)
+# plt.show()
 
 if __name__ == '__main__':
     print(doctest.testmod())
