@@ -64,6 +64,10 @@ def weighted_random_choice(weight_dict):
 
 
 def generate_word(bigram_counts, length, start_letter=None):
+    """
+    Randomly generate words using the bigram counts to
+    do a random weighted selection of the next letter.
+    """
     if start_letter is None:
         start_letter = random.choice(bigram_counts.keys())
     word = start_letter
