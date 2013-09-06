@@ -45,7 +45,8 @@ def normalize_bigram_matrix(bigram_counts):
     Normalize the bigram counts within each c1 so they reflect proportions
     for each c1.
     """
-    normed_counts = {c: dict() for c in string.ascii_lowercase}
+    normed_counts = {c: collections.defaultdict(int)
+                     for c in string.ascii_lowercase}
     for c1, c2_counts in bigram_counts.items():
         total = sum(c2_counts.values())
         for c2, count in c2_counts.items():
