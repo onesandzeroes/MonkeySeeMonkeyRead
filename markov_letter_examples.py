@@ -152,16 +152,16 @@ moby_bigram_counts = get_bigram_counts(moby_words)
 normed_counts = normalize_bigram_matrix(moby_bigram_counts)
 bigram_matrix = make_bigram_matrix(normed_counts)
 
-words = ['wasp', 'dime', 'hood', 'leek', 'open']
-nonwords = ['annk', 'ormp', 'palk', 'raln', 'scip']
+test_words = ['wasp', 'dime', 'hood', 'leek', 'open']
+test_nonwords = ['annk', 'ormp', 'palk', 'raln', 'scip']
 
 print("Words:")
-for w in words:
+for w in test_words:
     p = calculate_log_probability(w, moby_bigram_counts)
     print(w + ': ' + str(p))
 
 print("Nonwords:")
-for w in nonwords:
+for w in test_nonwords:
     p = calculate_log_probability(w, moby_bigram_counts)
     print(w + ': ' + str(p))
 
