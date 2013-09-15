@@ -11,6 +11,54 @@ import numpy as np
 import pandas as pd
 
 
+class NgramModel:
+
+    def __init__(self, n=None):
+        self.n = n
+        self.ngram_counts = collections.defaultdict(int)
+
+    def ngram_probability(self, ngram):
+        context = ngram[:-1]
+        raw_prob = self.ngram_counts[ngram] / self.ngram_counts[context]
+        log_prob = math.log(raw_prob)
+        return log_prob
+
+    def word_probability(self, word):
+        ngrams = self.get_ngrams(word, self.n)
+        ngram_probs = [self.ngram_probability(ngram) for ngram in ngrams]
+        total_prob = sum(ngram_probs)
+        return total_prob
+
+    def get_ngrams(self, text, n):
+        """
+        >>> text = 'actuary'
+        >>> list(NgramModel().get_ngrams(text, 2))
+        ['*a', 'ac', 'ct', 'tu', 'ua', 'ar', 'ry', 'y^']
+        >>> list(NgramModel().get_ngrams(text, 3))
+        ['**a', '*ac', 'act', 'ctu', 'tua', 'uar', 'ary', 'ry^']
+        """
+        words = (w.lower() for w in text.split() if w.isalpha())
+        for word in words:
+            padded_word = (n - 1) * '*' + word + '^'
+            # First letter of the actual word is at index (n-1),
+            # last is at len(padded_word) - n
+            for ind in range(len(padded_word) - (n-1)):
+                yield padded_word[ind:(ind + n)]
+
+    def train(self, text):
+        ngram_list = self.get_ngrams(text, self.n)
+        for ngram in ngram_list:
+            context = ngram[:-1]
+            self.ngram_counts[ngram] += 1
+            self.ngram_counts[context] += 1
+
+
+    def word_probability(self, word):
+        trigrams = self.trigram_model.get_ngrams(word, n=3)
+
+
+
+
 def get_bigram_counts(word_list):
     """
     Given a list of words, produce a dictionary mapping first
