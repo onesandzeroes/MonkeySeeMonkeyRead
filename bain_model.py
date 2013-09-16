@@ -1,11 +1,21 @@
 from __future__ import division
 import copy
+import doctest
 import itertools
 import random
+import matplotlib.pyplot as plt
 import pandas as pd
 
 
 def score_word(word, weights):
+    """
+    Calculate the score for the current word, using the provided
+    weights.
+
+    >>> w = {0: {'a': 1}, 1: {'r': -1}, 2: {'t': 0}, 3: {'y': 1}}
+    >>> score_word('arty', w)
+    1
+    """
     score = sum(weights[index][char] for index, char in enumerate(word))
     return score
 
@@ -61,27 +71,6 @@ def fitness_score(words, nonwords, weights):
     return score
 
 
-train_words = []
-test_words = []
-with open('dan_learned_words.txt') as words_file:
-    for n, line in enumerate(words_file):
-        word = line.strip()
-        if n % 2 == 0:
-            train_words.append(word)
-        else:
-            test_words.append(word)
-
-train_nonwords = []
-test_nonwords = []
-with open('dan_nonwords.txt') as nonwords_file:
-    for n, line in enumerate(nonwords_file):
-        nonword = line.strip()
-        if n % 2 == 0:
-            train_nonwords.append(nonword)
-        else:
-            test_nonwords.append(nonword)
-
-
 def create_random_weights():
     weights = {}
     for n in [0, 1, 2, 3]:
@@ -90,22 +79,61 @@ def create_random_weights():
             weights[n][c] = random.choice([0, 1, -1])
     return weights
 
-weights = create_random_weights()
-model_results = {'iteration': [], 'words_correct': [],
-                 'nonwords_correct': [], 'unclassified': []}
-N_ITERATIONS = 2000
-for i in range(N_ITERATIONS):
-    weights = train_model(weights, train_words, train_nonwords, n_iterations=1)
-    words_correct = sum(score_word(w, weights) > 0 for w in test_words)
-    words_correct_percent = words_correct / len(test_words)
-    nonwords_correct = sum(score_word(w, weights) < 0 for w in test_nonwords)
-    nonwords_correct_percent = nonwords_correct / len(test_nonwords)
-    unclassified = (sum(score_word(w, weights) == 0 for w in test_words) +
-                    sum(score_word(w, weights) == 0 for w in test_nonwords))
-    model_results['iteration'].append(i)
-    model_results['words_correct'].append(words_correct_percent)
-    model_results['nonwords_correct'].append(nonwords_correct_percent)
-    model_results['unclassified'].append(unclassified)
 
-final_results = pd.DataFrame(model_results)
-final_results.to_csv('bain_replication_results.csv')
+def full_model_run(train_words, train_nonwords, test_words, test_nonwords,
+                   n_iterations):
+    weights = create_random_weights()
+    model_results = {'iteration': [], 'words_correct': [],
+                     'nonwords_correct': [], 'unclassified': []}
+    for i in range(n_iterations):
+        weights = train_model(
+            weights, train_words, train_nonwords, n_iterations=1)
+        words_correct = sum(score_word(w, weights) > 0 for w in test_words)
+        words_correct_percent = words_correct / len(test_words)
+        nonwords_correct = sum(score_word(w, weights) < 0
+                               for w in test_nonwords)
+        nonwords_correct_percent = nonwords_correct / len(test_nonwords)
+        unclassified = (
+            sum(score_word(w, weights) == 0 for w in test_words) +
+            sum(score_word(w, weights) == 0 for w in test_nonwords)
+        )
+        model_results['iteration'].append(i)
+        model_results['words_correct'].append(words_correct_percent)
+        model_results['nonwords_correct'].append(nonwords_correct_percent)
+        model_results['unclassified'].append(unclassified)
+
+    results_df = pd.DataFrame(model_results)
+    return results_df
+
+
+def run_model(output_filename):
+    train_words = []
+    test_words = []
+    with open('dan_learned_words.txt') as words_file:
+        for n, line in enumerate(words_file):
+            word = line.strip()
+            if n % 2 == 0:
+                train_words.append(word)
+            else:
+                test_words.append(word)
+
+    train_nonwords = []
+    test_nonwords = []
+    with open('dan_nonwords.txt') as nonwords_file:
+        for n, line in enumerate(nonwords_file):
+            nonword = line.strip()
+            if n % 2 == 0:
+                train_nonwords.append(nonword)
+            else:
+                test_nonwords.append(nonword)
+
+    sim_results = full_model_run(train_words, train_nonwords, test_words,
+                                 test_nonwords, n_iterations=2000)
+    sim_results.set_index('iteration')
+    sim_results.to_csv(output_filename)
+    sim_results[['words_correct', 'nonwords_correct']].plot()
+    plt.savefig('figures/bain_replication.png')
+
+if __name__ == '__main__':
+    doctest.testmod()
+    run_model('bain_model_replication.csv')
