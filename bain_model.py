@@ -32,14 +32,26 @@ def train_model(weights, training_words, training_nonwords,
     return weights
 
 
+def sign(n):
+    if n > 0:
+        return 1
+    if n == 0:
+        return 0
+    if n < 0:
+        return -1
+
+
 def fitness_score(words, nonwords, weights):
-    word_total = sum(abs(score_word(word, weights)) for word in words)
-    nonword_total = sum(
-        abs(score_word(nonword, weights)) for nonword in nonwords)
+    word_scores = [score_word(w, weights) for w in words]
+    word_signs = [sign(s) for s in word_scores]
+    word_total = sum(word_signs) / len(words)
+    nonword_scores = [score_word(w, weights) for w in nonwords]
+    nonword_signs = [sign(s) for s in nonword_scores]
+    nonword_total = sum(nonword_signs) / len(nonwords)
     nonzero_weights = sum(1 for pos in weights
                           for char in weights[pos]
                           if weights[pos][char] != 0)
-    score = (word_total - nonword_total) / (300 + nonzero_weights)
+    score = (1000 * (word_total - nonword_total)) / (300 + nonzero_weights)
     return score
 
 
