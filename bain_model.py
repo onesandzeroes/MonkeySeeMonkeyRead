@@ -1,8 +1,8 @@
 from __future__ import division
-import collections
 import copy
 import itertools
 import random
+import pandas as pd
 
 
 def score_word(word, weights):
@@ -76,19 +76,31 @@ with open('dan_nonwords.txt') as nonwords_file:
         else:
             test_nonwords.append(nonword)
 
-print(len(train_words))
 
-weights = {}
+def create_random_weights():
+    weights = {}
+    for n in [0, 1, 2, 3]:
+        weights[n] = {}
+        for c in 'abcdefghijklmnopqrstuvwxyz':
+            weights[n][c] = random.choice([0, 1, -1])
+    return weights
 
-for n in [0, 1, 2, 3]:
-    weights[n] = {}
-    for c in 'abcdefghijklmnopqrstuvwxyz':
-        weights[n][c] = random.choice([0, 1, -1])
+weights = create_random_weights()
+model_results = {'iteration': [], 'words_correct': [],
+                 'nonwords_correct': [], 'unclassified': []}
+N_ITERATIONS = 2000
+for i in range(N_ITERATIONS):
+    weights = train_model(weights, train_words, train_nonwords, n_iterations=1)
+    words_correct = sum(score_word(w, weights) > 0 for w in test_words)
+    words_correct_percent = words_correct / len(test_words)
+    nonwords_correct = sum(score_word(w, weights) < 0 for w in test_nonwords)
+    nonwords_correct_percent = nonwords_correct / len(test_nonwords)
+    unclassified = (sum(score_word(w, weights) == 0 for w in test_words) +
+                    sum(score_word(w, weights) == 0 for w in test_nonwords))
+    model_results['iteration'].append(i)
+    model_results['words_correct'].append(words_correct_percent)
+    model_results['nonwords_correct'].append(nonwords_correct_percent)
+    model_results['unclassified'].append(unclassified)
 
-weights = train_model(weights, train_words, train_nonwords, n_iterations=2000)
-words_correct = sum(score_word(w, weights) > 0 for w in test_words)
-words_correct_percent = words_correct / len(test_words)
-nonwords_correct = sum(score_word(w, weights) < 0 for w in test_nonwords)
-nonwords_correct_percent = nonwords_correct / len(test_nonwords)
-unclassified = (sum(score_word(w, weights) == 0 for w in test_words) +
-    sum(score_word(w, weights) == 0 for w in test_nonwords))
+final_results = pd.DataFrame(model_results)
+final_results.to_csv('bain_replication_results.csv')
