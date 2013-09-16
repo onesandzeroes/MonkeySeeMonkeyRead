@@ -11,20 +11,25 @@ def score_word(word, weights):
 
 
 def train_model(weights, training_words, training_nonwords,
-                n_iterations, learning_rate=5):
+                n_iterations, learning_rate=0.05):
+    """
+    Train the word recognition model by calculating the current fitness
+    score, randomly changing ~5% of the weights, and keeping the new
+    weights if the fitness score is improved.
+    """
     for iteration_num in range(n_iterations):
         current_score = fitness_score(training_words, training_nonwords,
                                       weights)
         # Create a new set of weights by randomly perturbing the existing ones:
         new_weights = copy.deepcopy(weights)
-        all_pos_char_pairs = list(itertools.product(
+        all_pos_char_pairs = itertools.product(
             [0, 1, 2, 3],
-            list('abcdefghijklmnopqrstuvwxyz')))
-        weights_to_change = random.sample(
-            all_pos_char_pairs,
-            5)
-        for n, c in weights_to_change:
-            new_weights[n][c] = random.choice([0, 1, -1])
+            list('abcdefghijklmnopqrstuvwxyz')
+        )
+        for n, c in all_pos_char_pairs:
+            random_roll = random.random()
+            if random_roll <= learning_rate:
+                new_weights[n][c] = random.choice([0, 1, -1])
         new_score = fitness_score(
             training_words, training_nonwords, new_weights)
         if new_score > current_score:
