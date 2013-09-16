@@ -9,10 +9,12 @@ def score_word(word, weights):
     score = sum(weights[index][char] for index, char in enumerate(word))
     return score
 
+
 def train_model(weights, training_words, training_nonwords,
                 n_iterations, learning_rate=5):
     for iteration_num in range(n_iterations):
-        current_score = fitness_score(training_words, training_nonwords, weights)
+        current_score = fitness_score(training_words, training_nonwords,
+                                      weights)
         # Create a new set of weights by randomly perturbing the existing ones:
         new_weights = copy.deepcopy(weights)
         all_pos_char_pairs = list(itertools.product(
@@ -23,10 +25,9 @@ def train_model(weights, training_words, training_nonwords,
             5)
         for n, c in weights_to_change:
             new_weights[n][c] = random.choice([0, 1, -1])
-        new_score = fitness_score(training_words, training_nonwords, new_weights)
+        new_score = fitness_score(
+            training_words, training_nonwords, new_weights)
         if new_score > current_score:
-            print("New weights were better in iteration {n}".format(
-                n=iteration_num))
             print("Fitness score: {f}".format(f=new_score))
             weights = new_weights
     return weights
@@ -60,7 +61,7 @@ test_words = []
 with open('dan_learned_words.txt') as words_file:
     for n, line in enumerate(words_file):
         word = line.strip()
-        if  n % 2 == 0:
+        if n % 2 == 0:
             train_words.append(word)
         else:
             test_words.append(word)
