@@ -6,6 +6,7 @@ import pdb
 import random
 import string
 import nltk
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -52,10 +53,8 @@ class NgramModel:
             self.ngram_counts[ngram] += 1
             self.ngram_counts[context] += 1
 
-
     def word_probability(self, word):
         trigrams = self.trigram_model.get_ngrams(word, n=3)
-
 
 
 
@@ -170,12 +169,16 @@ for w in test_nonwords:
 #     print(generate_word(moby_bigram_counts, 5))
 
 # To plot:
-# plt.pcolor(np.log(bigram_matrix + 1), cmap=plt.cm.Blues)
-# plt.xlim((0, 26))
-# plt.ylim((0, 26))
-# plt.xticks(np.arange(0.5, 26, 1), string.ascii_lowercase)
-# plt.yticks(np.arange(0.5, 26, 1), string.ascii_lowercase)
-# plt.show()
+plt.pcolor(np.log(bigram_matrix + 1), cmap=plt.cm.Blues)
+plt.xlim((0, 26))
+plt.ylim((0, 26))
+plt.xlabel('Letter 1')
+plt.ylabel('Letter 2')
+plt.xticks(np.arange(0.5, 26, 1), string.ascii_lowercase, fontsize='medium')
+plt.yticks(np.arange(0.5, 26, 1), string.ascii_lowercase, fontsize='medium')
+matplotlib.rc('xtick', labelsize=14) 
+matplotlib.rc('ytick', labelsize=14) 
+plt.savefig('presentation/figures/moby_bigram_frequencies.png')
 
 if __name__ == '__main__':
     print(doctest.testmod())
