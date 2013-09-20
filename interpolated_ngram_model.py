@@ -3,6 +3,8 @@ import collections
 import math
 import pdb
 import nltk
+import pandas as pd
+import matplotlib.pyplot as plt
 
 class InterpolatedModel:
     """
@@ -109,13 +111,28 @@ if __name__ == '__main__':
     m.train(nltk.corpus.gutenberg.raw('melville-moby_dick.txt'))
     test_words = ['wasp', 'dime', 'hood', 'leek', 'open']
     test_nonwords = ['annk', 'ormp', 'palk', 'raln', 'scip']
+    with open('dan_learned_words.txt') as words_file:
+        dan_words = [line.strip() for line in words_file]
+    with open('dan_nonwords.txt') as nonwords_file:
+        dan_nonwords = [line.strip() for line in nonwords_file]
 
-    print("Words:")
-    for w in test_words:
-        p = m.word_probability(w)
-        print(w + ': ' + str(p))
+    word_ps = pd.DataFrame(
+        {'words': [m.word_probability(w) for w in dan_words]})
+    nonword_ps = pd.DataFrame(
+        {'nonwords': [m.word_probability(w) for w in dan_nonwords]})
+    p_df = pd.concat([word_ps, nonword_ps])
+    p_df = p_df.stack()
+    p_df = p_df.reset_index(level=1)
+    p_df.columns = ['Type', 'Probability']
+    p_df.to_csv('dan_ngram_probabilities.csv')
 
-    print("Nonwords:")
-    for w in test_nonwords:
-        p = m.word_probability(w)
-        print(w + ': ' + str(p))
+
+    # print("Words:")
+    # for w in test_words:
+    #     p = m.word_probability(w)
+    #     print(w + ': ' + str(p))
+
+    # print("Nonwords:")
+    # for w in test_nonwords:
+    #     p = m.word_probability(w)
+    #     print(w + ': ' + str(p))

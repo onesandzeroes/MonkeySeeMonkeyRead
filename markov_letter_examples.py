@@ -164,22 +164,37 @@ for w in test_nonwords:
     p = calculate_log_probability(w, moby_bigram_counts)
     print(w + ': ' + str(p))
 
+with open('dan_learned_words.txt') as words_file:
+    dan_words = [line.strip() for line in words_file]
+with open('dan_nonwords.txt') as nonwords_file:
+    dan_nonwords = [line.strip() for line in nonwords_file]
+
+
+def plot_word_probs(words, nonwords, bigram_counts):
+    df = pd.DataFrame(
+        {'word': [calculate_log_probability(w, bigram_counts) for w in words],
+        'nonword': [calculate_log_probability(w, bigram_counts) for w in nonwords]})
+    df = df.stack()
+    df = df.reset_index(level=1)
+    return df
+
 # Test generation:
 # for i in range(100):
 #     print(generate_word(moby_bigram_counts, 5))
 
-# To plot:
-plt.pcolor(np.log(bigram_matrix + 1), cmap=plt.cm.Blues)
-plt.xlim((0, 26))
-plt.ylim((0, 26))
-plt.xlabel('Letter 1')
-plt.ylabel('Letter 2')
-plt.xticks(np.arange(0.5, 26, 1), string.ascii_lowercase, fontsize='medium')
-plt.yticks(np.arange(0.5, 26, 1), string.ascii_lowercase, fontsize='medium')
-matplotlib.rc('xtick', labelsize=14) 
-matplotlib.rc('ytick', labelsize=14) 
-plt.savefig('presentation/figures/moby_bigram_frequencies.png')
+def plot_bigram_matrix(bigram_matrix, figure_filename):
+    plt.pcolor(np.log(bigram_matrix + 1), cmap=plt.cm.Blues)
+    plt.xlim((0, 26))
+    plt.ylim((0, 26))
+    plt.xlabel('Letter 1')
+    plt.ylabel('Letter 2')
+    plt.xticks(np.arange(0.5, 26, 1), string.ascii_lowercase, fontsize='medium')
+    plt.yticks(np.arange(0.5, 26, 1), string.ascii_lowercase, fontsize='medium')
+    matplotlib.rc('xtick', labelsize=14)
+    matplotlib.rc('ytick', labelsize=14)
+    plt.savefig(figure_filename)
 
 if __name__ == '__main__':
     print(doctest.testmod())
+    df = plot_word_probs(dan_words, dan_nonwords, moby_bigram_counts)
 
